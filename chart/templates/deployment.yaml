@@ -1,0 +1,173 @@
+# Backend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "squidflow.fullname" . }}-backend
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "squidflow.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  replicas: {{ .Values.backend.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "squidflow.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        {{- include "squidflow.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: backend
+    spec:
+      serviceAccountName: {{ include "squidflow.fullname" . }}
+      # Add init container for ssh-agent setup
+      initContainers:
+        {{- if .Values.git.secrets }}
+        - name: init-ssh
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /tmp/.ssh
+              chmod 700 /tmp/.ssh
+
+              # Copy SSH keys with strict permissions
+              {{- range .Values.git.secrets }}
+              cp /ssh-keys/{{ .mountPath }} /tmp/.ssh/
+              chmod 600 /tmp/.ssh/{{ .mountPath }}
+              {{- end }}
+
+              # Copy known_hosts from ArgoCD
+              cp /app/config/ssh/ssh_known_hosts /tmp/.ssh/known_hosts
+              chmod 644 /tmp/.ssh/known_hosts
+
+              cp -r /tmp/.ssh/* /shared-ssh/
+
+              # SSH config
+              cat > /shared-ssh/config << EOF
+              Host github.com
+                HostName ssh.github.com
+                Port 443
+                User git
+                IdentityFile /tmp/.ssh/id_rsa_github
+
+              Host gitlab.com
+                IdentityFile /tmp/.ssh/id_rsa_gitlab
+              EOF
+              chmod 600 /shared-ssh/config
+          volumeMounts:
+            - name: ssh-keys
+              mountPath: /ssh-keys
+              readOnly: true
+            - name: shared-ssh
+              mountPath: /shared-ssh
+            - name: ssh-known-hosts
+              mountPath: /app/config/ssh
+              readOnly: true
+        {{- end }}
+      containers:
+        - name: ssh-agent
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          command:
+            - sh
+            - -c
+            - |
+              eval $(ssh-agent -a $SSH_AUTH_SOCK)
+              {{- range .Values.git.secrets }}
+              ssh-add /tmp/.ssh/{{ .mountPath }}
+              {{- end }}
+              sleep infinity
+          env:
+            - name: SSH_AUTH_SOCK
+              value: /ssh-agent/ssh-agent.sock
+          volumeMounts:
+            - name: shared-ssh
+              mountPath: /tmp/.ssh
+            - name: ssh-agent-socket
+              mountPath: /ssh-agent
+        - name: {{ include "squidflow.fullname" . }}-backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          command: ["/app/service"]
+          args: ["run", "-c", "/etc/service/config.toml"]
+          env:
+            - name: SSH_AUTH_SOCK
+              value: /ssh-agent/ssh-agent.sock
+            - name: SSH_KNOWN_HOSTS
+              value: /tmp/.ssh/known_hosts
+          ports:
+            - name: http
+              containerPort: 38080
+              protocol: TCP
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/service
+            {{- if .Values.git.secrets }}
+            - name: shared-ssh
+              mountPath: /tmp/.ssh
+            - name: ssh-agent-socket
+              mountPath: /ssh-agent
+            {{- end }}
+            - mountPath: /tmp/kubeconform
+              name: kubeconform
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: argocd-ssh-known-hosts-cm # copy from argocd-ssh-known-hosts-cm
+          name: ssh-known-hosts
+        - name: config-volume
+          configMap:
+            name: {{ include "squidflow.fullname" . }}-config
+        {{- if .Values.git.secrets }}
+        - name: shared-ssh
+          emptyDir: {}
+        - name: ssh-keys
+          projected:
+            sources:
+            {{- range .Values.git.secrets }}
+            - secret:
+                name: {{ .name }}
+                items:
+                  - key: {{ .keyField }}
+                    path: {{ .mountPath }}
+            {{- end }}
+        - name: ssh-agent-socket
+          emptyDir: {}
+        {{- end }}
+        - name: kubeconform
+          emptyDir: {}
+---
+# Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "squidflow.fullname" . }}-frontend
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "squidflow.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  replicas: {{ .Values.frontend.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "squidflow.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        {{- include "squidflow.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: frontend
+    spec:
+      containers:
+        - name: {{ include "squidflow.fullname" . }}-frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          workingDir: /app/web
+          command: ["node", "/app/server.js"]
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}

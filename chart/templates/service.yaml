@@ -1,0 +1,39 @@
+# Backend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "squidflow.fullname" . }}-backend
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "squidflow.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 38080
+      targetPort: 38080
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "squidflow.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+---
+# Frontend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "squidflow.fullname" . }}-frontend
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "squidflow.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 3000
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "squidflow.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
