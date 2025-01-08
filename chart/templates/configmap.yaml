@@ -24,6 +24,8 @@ data:
     remote_url = {{ .Values.config.gitops.metarepo.remote_url | quote }}
     git_provider_base_url = {{ .Values.config.gitops.metarepo.git_provider_base_url | quote }}
     access_token = {{ .Values.config.gitops.metarepo.access_token | quote }}
+    username = {{ .Values.config.gitops.metarepo.username | quote }}
+    password = {{ .Values.config.gitops.metarepo.password | quote }}
 
     [argocd]
     server_address = {{ .Values.config.argocd.server_address | quote }}
