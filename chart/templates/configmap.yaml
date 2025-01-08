@@ -8,28 +8,30 @@ metadata:
 data:
   config.toml: |
     [log]
-    level = "debug"
+    level = {{ .Values.config.log.level | quote }}
 
     [server]
-    address = "0.0.0.0"
-    port = 38080
+    address = {{ .Values.config.server.address | quote }}
+    port = {{ .Values.config.server.port }}
 
     [gitops]
-    mode = {{ .Values.gitops.mode | default "pull_request" | quote }}
-    branch_prefix = {{ .Values.gitops.branchPrefix | default "squidflow-change" | quote }}
-    kubeconform_crds_path = {{ .Values.gitops.kubeconformCrdsPath | default `file:///app/crds/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json` | quote }}
+    mode = {{ .Values.config.gitops.mode | quote }}
+    branch_prefix = {{ .Values.config.gitops.branch_prefix | quote }}
+    registry = {{ .Values.config.gitops.registry | quote }}
+    kubeconform_crds_path_prefix = {{ .Values.config.gitops.kubeconform_crds_path_prefix | quote }}
 
     [gitops.metarepo]
-    remote_url = {{ .Values.gitops.metarepo.remoteUrl | default "https://github.com/squidflow/gitops.git" | quote }}
-    access_token = {{ .Values.gitops.metarepo.accessToken | default "" | quote }}
+    remote_url = {{ .Values.config.gitops.metarepo.remote_url | quote }}
+    git_provider_base_url = {{ .Values.config.gitops.metarepo.git_provider_base_url | quote }}
+    access_token = {{ .Values.config.gitops.metarepo.access_token | quote }}
 
     [argocd]
-    server_address = {{ .Values.argocd.serverAddress | quote }}
-    username = {{ .Values.argocd.username | quote }}
-    password = {{ .Values.argocd.password | quote }}
-    plaintext = {{ .Values.argocd.plaintext }}
-    insecure = {{ .Values.argocd.insecure }}
-    grpcweb = {{ .Values.argocd.grpcweb }}
+    server_address = {{ .Values.config.argocd.server_address | quote }}
+    username = {{ .Values.config.argocd.username | quote }}
+    password = {{ .Values.config.argocd.password | quote }}
+    plaintext = {{ .Values.config.argocd.plaintext }}
+    insecure = {{ .Values.config.argocd.insecure }}
+    grpcweb = {{ .Values.config.argocd.grpcweb }}
 ---
 apiVersion: v1
 data:

@@ -111,6 +111,13 @@ spec:
             {{- end }}
             - mountPath: /tmp/kubeconform
               name: kubeconform
+            {{- if .Values.backend.ca.enabled }}
+            {{- range .Values.backend.ca.certificates }}
+            - name: {{ .name }}-cert
+              mountPath: {{ .mountPath }}
+              subPath: {{ .secretKey }}
+            {{- end }}
+            {{- end }}
       volumes:
         - configMap:
             defaultMode: 420
@@ -137,6 +144,16 @@ spec:
         {{- end }}
         - name: kubeconform
           emptyDir: {}
+        {{- if .Values.backend.ca.enabled }}
+        {{- range .Values.backend.ca.certificates }}
+        - name: {{ .name }}-cert
+          secret:
+            secretName: {{ .secretName }}
+            items:
+              - key: {{ .secretKey }}
+                path: {{ .secretKey }}
+        {{- end }}
+        {{- end }}
 ---
 # Frontend Deployment
 apiVersion: apps/v1

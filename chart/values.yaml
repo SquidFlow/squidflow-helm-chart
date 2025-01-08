@@ -10,8 +10,8 @@ backend:
     type: ClusterIP
     port: 38080
   image:
-    repository: ghcr.io/squidflow/service
-    tag: "v0.0.3"
+    repository: wangguohao/squidflow-service
+    tag: "v0.0.12"
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -20,6 +20,13 @@ backend:
     limits:
       cpu: 500m
       memory: 512Mi
+  ca:
+    enabled: false
+    certificates:
+      - name: "custom-ca"
+        secretName: "custom-ca-secret"
+        secretKey: "ca.crt"
+        mountPath: "/etc/ssl/certs/custom-ca.crt"
 
 frontend:
   replicaCount: 1
@@ -28,7 +35,7 @@ frontend:
     port: 80
   image:
     repository: ghcr.io/squidflow/web
-    tag: "v0.0.1"
+    tag: "v0.0.3"
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -41,22 +48,36 @@ frontend:
 ingress:
   enabled: false
 
-argocd:
-  serverAddress: "argocd-server.argocd.svc.cluster.local:80"
-  username: "admin"
-  password: "yFFLNJ-WzpaBObTD"
-  plaintext: false
-  insecure: true
-  grpcweb: true
+config:
+  log:
+    level: "debug"
 
-gitops:
-  mode: "pull_request"
-  branch_prefix: "SQ-change"
-  metarepo:
-    remoteUrl: "ssh://git@github.com:SquidFlow/gitops.git"
+  server:
+    address: "0.0.0.0"
+    port: 38080
+
+  gitops:
+    mode: "pull_request"
+    branch_prefix: "SQ-change"
+    registry: "jforgimg.china.example.com:5000/adak8s"
+    kubeconform_crds_path_prefix: "/app/submodules/"
+
+    metarepo:
+      remote_url: "ssh://172.16.24.127:7999/ad/manifest.git?ref=sit"
+      git_provider_base_url: "https://bitbucket.example.com:8443/dcifgit"
+      access_token: "BBDC-NzMzNjQ1MzUwODA5OsHu7SzWgCFvoUxnMOVuYoszYVoD"
+
+  argocd:
+    server_address: "argocd-server.argocd.svc.cluster.local:80"
+    username: "admin"
+    password: "yFFLNJ-WzpaBObTD"
+    plaintext: false
+    insecure: true
+    grpcweb: true
 
 ssh_known_hosts:
   - "[bitbucket.com]:7999 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7Hr1oTWqNqOlzGJOfGJ4NakVyIzf1rXYd4d7wo6jBlkLvCA4odBlL0mDUyZ0/QUfTTqeu+tm22gOsv+VrVTMk6vwRU75gY/y9ut5Mb3bR5BV58dKXyq9A9UeB5Cakehn5Zgm6x1mKoVyf+FFn26iYqXJRgzIZZcZ5V6hrE0Qg39kZm4az48o0AUbf6Sp4SLdvnuMa2sVNwHBboS7EJkm57XQPVU3/QpyNLHbWDdzwtrlS+ez30S3AdYhLKEOxAG8weOnyrtLJAUen9mTkol8oII1edf7mWWbWVf0nBmly21+nZcmCTISQBtdcyPaEno7fFQMDD26/s0lfKob4Kw8H"
+  - "[172.16.24.127]:7999 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCOop2P6qG77S7D1C1ptLHrInTJQhAh6cyedrLtCA/EFm9urpb65hGX8Nh+pAmMjNHjXypfVHZeKtJ2CobfKBsYL/V/fJN3LQW2VedC9uuU4OnEbAXy0YdYstvYNX125OStaZtxXs4FccsNCJz/jl0NfkEV9XhGKHQj9S5e1Z7LtTg6YyqyEH3ERQRqi6jWf2F+rhJM8xWtKLzqDbiCBFFKhaYD7jADFLkpeGLWJ7wcv5nBp0MlDcRBohK91h4CvHf8qpFtWPwywHSQfKj5naHfkk/+UwCK67Hb69ZXz5awwPN+Sys6IHbioPFd0GkyFaP3OfQ8pRLjBnUTKyX9yFeL"
 
 git:
   secrets:
