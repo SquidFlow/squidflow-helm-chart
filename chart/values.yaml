@@ -80,6 +80,8 @@ ssh_known_hosts:
   - "[172.16.24.127]:7999 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCOop2P6qG77S7D1C1ptLHrInTJQhAh6cyedrLtCA/EFm9urpb65hGX8Nh+pAmMjNHjXypfVHZeKtJ2CobfKBsYL/V/fJN3LQW2VedC9uuU4OnEbAXy0YdYstvYNX125OStaZtxXs4FccsNCJz/jl0NfkEV9XhGKHQj9S5e1Z7LtTg6YyqyEH3ERQRqi6jWf2F+rhJM8xWtKLzqDbiCBFFKhaYD7jADFLkpeGLWJ7wcv5nBp0MlDcRBohK91h4CvHf8qpFtWPwywHSQfKj5naHfkk/+UwCK67Hb69ZXz5awwPN+Sys6IHbioPFd0GkyFaP3OfQ8pRLjBnUTKyX9yFeL"
 
 git:
+  name: git
+  email: git@example.com
   secrets:
     - name: "source-secret-rw-ssh"
       keyField: "id_rsa"

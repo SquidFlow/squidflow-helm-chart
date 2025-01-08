@@ -96,6 +96,10 @@ spec:
               value: /ssh-agent/ssh-agent.sock
             - name: SSH_KNOWN_HOSTS
               value: /tmp/.ssh/known_hosts
+            - name: GIT_USER
+              value: {{ .Values.git.name }}
+            - name: GIT_EMAIL
+              value: {{ .Values.git.email }}
           ports:
             - name: http
               containerPort: 38080
