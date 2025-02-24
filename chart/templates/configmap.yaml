@@ -27,6 +27,9 @@ data:
     username = {{ .Values.config.gitops.metarepo.username | quote }}
     password = {{ .Values.config.gitops.metarepo.password | quote }}
 
+    [gitops.vendor1]
+    env = {{ .Values.config.gitops.vendor1.env | quote }}
+
     [argocd]
     server_address = {{ .Values.config.argocd.server_address | quote }}
     username = {{ .Values.config.argocd.username | quote }}

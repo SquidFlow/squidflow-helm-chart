@@ -65,14 +65,17 @@ config:
     metarepo:
       remote_url: "ssh://172.16.24.127:7999/ad/manifest.git?ref=sit"
       git_provider_base_url: "https://bitbucket.example.com:8443/dcifgit"
-      access_token: "BBDC-NzMzNjQ1MzUwODA5OsHu7SzWgCFvoUxnMOVuYoszYVoD"
+      access_token: ""
       username: ""
       password: ""
 
+    vendor1:
+      env: sit
+
   argocd:
     server_address: "argocd-server.argocd.svc.cluster.local:80"
-    username: "admin"
-    password: "yFFLNJ-WzpaBObTD"
+    username: ""
+    password: ""
     plaintext: false
     insecure: true
     grpcweb: true
