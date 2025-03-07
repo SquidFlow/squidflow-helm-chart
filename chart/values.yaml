@@ -59,7 +59,6 @@ config:
   gitops:
     mode: "pull_request"
     branch_prefix: "SQ-change"
-    registry: "jforgimg.china.example.com:5000/adak8s"
     kubeconform_crds_path_prefix: "../submodules/"
 
     native:

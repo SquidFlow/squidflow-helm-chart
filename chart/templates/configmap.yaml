@@ -17,7 +17,6 @@ data:
     [gitops]
     mode = {{ .Values.config.gitops.mode | quote }}
     branch_prefix = {{ .Values.config.gitops.branch_prefix | quote }}
-    registry = {{ .Values.config.gitops.registry | quote }}
     kubeconform_crds_path_prefix = {{ .Values.config.gitops.kubeconform_crds_path_prefix | quote }}
 
     {{- if .Values.config.gitops.native.enabled }}
