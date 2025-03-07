@@ -20,15 +20,36 @@ data:
     registry = {{ .Values.config.gitops.registry | quote }}
     kubeconform_crds_path_prefix = {{ .Values.config.gitops.kubeconform_crds_path_prefix | quote }}
 
-    [gitops.metarepo]
-    remote_url = {{ .Values.config.gitops.metarepo.remote_url | quote }}
-    git_provider_base_url = {{ .Values.config.gitops.metarepo.git_provider_base_url | quote }}
-    access_token = {{ .Values.config.gitops.metarepo.access_token | quote }}
-    username = {{ .Values.config.gitops.metarepo.username | quote }}
-    password = {{ .Values.config.gitops.metarepo.password | quote }}
+    {{- if .Values.config.gitops.native.enabled }}
+    [gitops.native]
+    remote_url = {{ .Values.config.gitops.native.remote_url | quote }}
+    {{- if .Values.config.gitops.native.access_token }}
+    access_token = {{ .Values.config.gitops.native.access_token | quote }}
+    {{- end }}
+    {{- if .Values.config.gitops.native.username }}
+    username = {{ .Values.config.gitops.native.username | quote }}
+    {{- end }}
+    {{- if .Values.config.gitops.native.password }}
+    password = {{ .Values.config.gitops.native.password | quote }}
+    {{- end }}
+    {{- end }}
 
+    {{- if .Values.config.gitops.vendor1.enabled }}
     [gitops.vendor1]
     env = {{ .Values.config.gitops.vendor1.env | quote }}
+
+    [gitops.vendor1.sit]
+    name = {{ .Values.config.gitops.vendor1.sit.name | quote }}
+    platform_url = {{ .Values.config.gitops.vendor1.sit.platform_url | quote }}
+    {{- if .Values.config.gitops.vendor1.sit.git_provider_base_url }}
+    git_provider_base_url = {{ .Values.config.gitops.vendor1.sit.git_provider_base_url | quote }}
+    {{- end }}
+    access_token = {{ .Values.config.gitops.vendor1.sit.access_token | quote }}
+    registry_prefix = {{ .Values.config.gitops.vendor1.sit.registry_prefix | quote }}
+
+    [gitops.vendor1.user]
+    name = {{ .Values.config.gitops.vendor1.user.name | quote }}
+    {{- end }}
 
     [argocd]
     server_address = {{ .Values.config.argocd.server_address | quote }}
@@ -37,6 +58,18 @@ data:
     plaintext = {{ .Values.config.argocd.plaintext }}
     insecure = {{ .Values.config.argocd.insecure }}
     grpcweb = {{ .Values.config.argocd.grpcweb }}
+
+    {{- if .Values.config.auth }}
+    [auth]
+    salt = {{ .Values.config.auth.salt | quote }}
+
+    users = [
+      {{- range $index, $user := .Values.config.auth.users }}
+      {{- if $index }},{{ end }}
+      { username = {{ $user.username | quote }}, password_hash = {{ $user.password_hash | quote }}, tenants = [{{ range $i, $tenant := $user.tenants }}{{- if $i }}, {{ end }}{{ $tenant | quote }}{{- end }}], roles = [{{ range $i, $role := $user.roles }}{{- if $i }}, {{ end }}{{ $role | quote }}{{- end }}] }
+      {{- end }}
+    ]
+    {{- end }}
 ---
 apiVersion: v1
 data:

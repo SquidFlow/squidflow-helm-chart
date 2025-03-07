@@ -60,17 +60,28 @@ config:
     mode: "pull_request"
     branch_prefix: "SQ-change"
     registry: "jforgimg.china.example.com:5000/adak8s"
-    kubeconform_crds_path_prefix: "/app/submodules/"
+    kubeconform_crds_path_prefix: "../submodules/"
 
-    metarepo:
-      remote_url: "ssh://172.16.24.127:7999/ad/manifest.git?ref=sit"
-      git_provider_base_url: "https://bitbucket.example.com:8443/dcifgit"
+    native:
+      enabled: false
+      remote_url: "https://github.com/squidflow/gitops.git"
       access_token: ""
       username: ""
       password: ""
 
     vendor1:
-      env: sit
+      enabled: true
+      env: "sit"
+
+      sit:
+        name: "sit"
+        platform_url: "ssh://git@localhost:7999/ad/platform.git?ref=sit"
+        git_provider_base_url: ""
+        access_token: ""
+        registry_prefix: "jforgimg.china.example.com:5000/adak8s"
+
+      user:
+        name: "user"
 
   argocd:
     server_address: "argocd-server.argocd.svc.cluster.local:80"
@@ -79,6 +90,22 @@ config:
     plaintext: false
     insecure: true
     grpcweb: true
+
+  auth:
+    salt: "secure-salt-value-123"
+    users:
+      - username: "admin"
+        password_hash: "I8oGKlFTlxB3bRPQxMNYohbKvU7dHklYEMhzfKUnX1U="
+        tenants: ["*"]
+        roles: ["admin"]
+      - username: "adak8s"
+        password_hash: "MyY76pVvaZ5RHgaMqSdvbk6Q8mMDED9jLzU3CjFZeyg="
+        tenants: ["*"]
+        roles: ["admin"]
+      - username: "ada"
+        password_hash: "TgSFMSZ8iG9qn2VHIA9R8GleiP4k21lFTneS7C6KqJs="
+        tenants: ["ada"]
+        roles: ["user"]
 
 ssh_known_hosts:
   - "[bitbucket.com]:7999 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7Hr1oTWqNqOlzGJOfGJ4NakVyIzf1rXYd4d7wo6jBlkLvCA4odBlL0mDUyZ0/QUfTTqeu+tm22gOsv+VrVTMk6vwRU75gY/y9ut5Mb3bR5BV58dKXyq9A9UeB5Cakehn5Zgm6x1mKoVyf+FFn26iYqXJRgzIZZcZ5V6hrE0Qg39kZm4az48o0AUbf6Sp4SLdvnuMa2sVNwHBboS7EJkm57XQPVU3/QpyNLHbWDdzwtrlS+ez30S3AdYhLKEOxAG8weOnyrtLJAUen9mTkol8oII1edf7mWWbWVf0nBmly21+nZcmCTISQBtdcyPaEno7fFQMDD26/s0lfKob4Kw8H"
